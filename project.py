@@ -267,8 +267,9 @@ class Trial():
         elif (self.type == 'alphabetic' and self.flanker == '@') or (self.type == 'numeric' and self.flanker == '*'):
             if experiment_info['condition'] == '1':
                 self.helpful = 1
-        elif experiment_info['condition'] == '0':
+        elif experiment_info['condition'] == '2':
             self.helpful = 1
+
 
     def run(self):
         ''' Runs this trial'''
