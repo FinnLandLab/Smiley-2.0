@@ -23,30 +23,42 @@ class Trial():
 
         assert flanker in '#@*' and len(flanker) == 1, "flanker '{}' is not '#', '@', or '*'".format(flanker)
 
+        # Get the type of the trial
         if character in '23456789':
             self.type = 'numeric'
-            self.right_key = 'k'
-            self.wrong_key = 'j'
         elif character.isalpha():
             self.type = 'alphabetic'
-            self.right_key = 'j'
-            self.wrong_key = 'k'
         else:
             raise Exception("Character '{}' is not in the allowed set of characters".format(character))
 
+        # Get the correct keys for this trial:
+        # Suppose we have that letter_pair_j is true. Then
+        if self.type == 'alphabetic':
+            self.right_key = 'j'
+            self.wrong_key = 'k'
+        else:
+            self.right_key = 'k'
+            self.wrong_key = 'j'
+        # If that is not the case, swap them
+        if not experiment.letter_pair_j:
+            self.right_key, self.wrong_key = self.wrong_key, self.right_key
+
+        # Get the character and flanker for this trial
         self.char = character
         self.flanker = flanker
 
-
-        # check if the trial is helpful
-        self.helpful = -1
+        # check if the trial is helpful:
+        # Suppose that letters_corr_at is true. Then we get:
         if flanker == '#':
             self.helpful = 0
         elif (self.type == 'alphabetic' and self.flanker == '@') or (self.type == 'numeric' and self.flanker == '*'):
-            if self.experiment.condition == '1':
-                self.helpful = 1
-        elif self.experiment.condition == '2':
             self.helpful = 1
+        else:
+            self.helpful = -1
+
+        # If letters_corr_at is false, then we have the opposite helpfulness
+        if experiment.letters_corr_at:
+            self.helpful = -self.helpful
 
 
     def run(self):
@@ -113,6 +125,7 @@ class Block():
                           self.block_num, i,
                           self.experiment.date,
                           self.experiment.condition,
+                          self.experiment.letters_corr_at, self.experiment.letter_pair_j,
                           trial.char, trial.type,
                           trial.flanker, trial.helpful,
                           trial.right_key,
@@ -131,7 +144,8 @@ def run(experiment):
     # How many trials for each type of character and each type of flanker
     trial_amounts = {'alphabetic': {'#':[8] * 6}, 'numeric':{'#':[8] * 6}}
 
-    # Assume that we have experiment.condition == '1'. Note we know that for each character the trial amounts add up to 32
+    # Assume that experiment.letters_corr_at is True
+    # Note we know that for each character the trial amounts add up to 32
     trial_amounts['alphabetic']['@'] = [21] * 4 + [22] * 2
     random.shuffle(trial_amounts['alphabetic']['@'])
     trial_amounts['alphabetic']['*'] = [24 - i for i in trial_amounts['alphabetic']['@']]
@@ -140,16 +154,24 @@ def run(experiment):
     random.shuffle(trial_amounts['numeric']['*'])
     trial_amounts['numeric']['@'] = [24 - i for i in trial_amounts['numeric']['*']]
 
-    # If we don't, switch the occurences
-    if experiment.condition == '2':
+    # But if experiment.letters_corr_at is False, switch the occurences
+    if not experiment.letters_corr_at:
         trial_amounts['alphabetic'], trial_amounts['numeric'] = trial_amounts['numeric'], trial_amounts['alphabetic']
 
     # Show some instructions
-    experiment.window.show_images('instructions')
+    if experiment.letter_pair_j:
+        experiment.window.show_images('instructions', 'start_j_letter')
+    else:
+        experiment.window.show_images('instructions', 'start_j_number')
+
     for i in range(6):
         # Take only the i'th value of the trial_amounts amounts
         type_flanker_amounts = {ctype:{ftype: trial_amounts[ctype][ftype][i] for ftype in trial_amounts[ctype]} for ctype in trial_amounts}
         # Run the block that is represented by the trial amounts
         Block(experiment, type_flanker_amounts, i).run()
+
+        # Give them a break before the next block
+        if i < 5:
+            experiment.window.show_images('instructions', 'break')
 
     experiment.save_data()

@@ -19,6 +19,7 @@ DATA_NAMES_TASK = ["experiment",
                    "block number", "trial number",
                    "date",
                    "condition",
+                   "letters_corr_at", "letter_pair_j",
                    "character", "type",
                    "flanker", "helpful",
                    "expected response",
@@ -56,7 +57,13 @@ class Experiment:
         self.participant = participant
         # Get the numbers from the participant_id string
         self.participant_num = int("".join([c for c in participant if c.isdigit()]))
-        self.condition = '1' if self.participant_num % 2 == 0 else '2'
+        self.condition = self.participant_num % 4  # can be 0, 1, 2, or 3
+
+        # True in half of the trials, in which letter will occur more often with the '@'
+        self.letters_corr_at = self.condition % 2 == 0
+
+        # True in half of the trials, when false pair them with 'k'
+        self.letter_pair_j = self.condition // 2 == 0
 
         self.age_group = age_group
         self.date = time.strftime('%c')
