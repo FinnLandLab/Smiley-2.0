@@ -57,7 +57,7 @@ class Trial():
             self.helpful = -1
 
         # If letters_corr_at is false, then we have the opposite helpfulness
-        if experiment.letters_corr_at:
+        if not experiment.letters_corr_at:
             self.helpful = -self.helpful
 
 
