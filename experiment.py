@@ -121,4 +121,4 @@ class Experiment:
 
     def close(self):
         """ Ends the experiment. Does not save any data"""
-        self._window.close()
+        self.window.close()
