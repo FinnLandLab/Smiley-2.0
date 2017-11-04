@@ -13,10 +13,11 @@ experiment = Experiment(participant, age_group)
 
 # ---------------- MAIN PROGRAM --------------------
 
-task.run(experiment)
+# Run task
+# task.run(experiment)
 
-# TODO: Implement post task
-# post_task.run(experiment)
+# Run post-task
+post_task.run(experiment)
 
 # cleanup
 experiment.close()

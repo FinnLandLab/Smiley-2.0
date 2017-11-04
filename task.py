@@ -125,7 +125,7 @@ class Block():
                           self.block_num, i,
                           self.experiment.date,
                           self.experiment.condition,
-                          self.experiment.letters_corr_at, self.experiment.letter_pair_j,
+                          int(self.experiment.letters_corr_at), int(self.experiment.letter_pair_j),
                           trial.char, trial.type,
                           trial.flanker, trial.helpful,
                           trial.right_key,

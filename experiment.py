@@ -15,7 +15,7 @@ OUTPUT_LOCATION = "data"
 
 # The names of the variables being recorded for the n-back task. Corresponds to DATA_HEADER_TASK
 DATA_NAMES_TASK = ["experiment",
-                   "participant id", "age group",
+                   "participant id", "group",
                    "block number", "trial number",
                    "date",
                    "condition",
@@ -30,11 +30,12 @@ DATA_HEADER_TASK = ",".join(DATA_NAMES_TASK)
 
 # The names of the variables being recorded for the post task. Corresponds to DATA_HEADER_POST
 DATA_NAMES_POST = ["experiment",
-                   "participant id", "age group",
+                   "participant id", "group",
                    "date",
-                   "n-back task", "prime list", "n-back reversed",
-                   "prime image", "trial number", "image difficulty",
-                   "user response", "reaction time"]
+                   "condition",
+                   "letters_corr_at", "letter_pair_j",
+                   "question",
+                   "user response"]
 
 # The header for the csv file being saved for the post task
 DATA_HEADER_POST = ",".join(DATA_NAMES_POST)

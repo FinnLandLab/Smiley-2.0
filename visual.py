@@ -1,6 +1,6 @@
 """ A package that focuses on the user interaction"""
 
-from psychopy import visual, event, gui
+from psychopy import visual, event, gui, core
 import sys, os
 from glob import glob
 
@@ -38,7 +38,7 @@ class Window:
         """ Initializes the window class"""
         self.experiment = experiment
         # Create the window object we'll use
-        self._window = visual.Window(fullscr=True, monitor="testMonitor", units="cm", color=1)
+        self._window = visual.Window(fullscr=True, monitor="testMonitor", units="norm", color=1)
 
         self._instruction_image = visual.ImageStim(win=self._window, units='norm', size=(2, 2))
 
@@ -69,6 +69,50 @@ class Window:
         text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman')
         text_element.draw()
         self._window.flip()
+
+    def wait_for_choice(self, prompt, choices):
+        """ Displays the given choices in lst choices with the given str prompt,
+            and waits until one is picked. """
+        # Display choices
+        button_width = 2 / (len(choices) + 1.0)
+        buttons = []
+        for i in range(len(choices)):
+            x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
+
+            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1, font='Times New Roman', pos=(x_loc, -0.5))
+            textWidth, textHeight = text.boundingBox
+            textWidth = 2.0 * textWidth / self._window.size[0]
+            textHeight = 2.0 * textHeight / self._window.size[1]
+            rect = visual.Rect(self._window, min(1.1 * textWidth, button_width), 1.1 * textHeight, lineColor=-1, pos=(x_loc, -0.5))
+            buttons += [rect]
+            rect.draw()
+            text.draw()
+
+        # Display the prompt
+        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1, font='Times New Roman')
+        text.draw()
+
+        # Tell the user to use their mouse
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, font='Times New Roman', alignHoriz='left', pos=(-0.9, -textHeight))
+        text.draw()
+
+
+        self._window.flip()
+
+        mouse = event.Mouse(win=self._window)
+        # Wait for the user to click on one of them
+        while True:
+            for i in range(len(buttons)):
+                if mouse.isPressedIn(buttons[i], buttons=[0]):
+                    return choices[i]
+
+            if len(event.getKeys(keyList=["escape"])) != 0:
+                self.experiment.save_data()
+                sys.exit()
+
+            core.wait(0.01, hogCPUperiod=0)
+
+
 
     def wait_for_prompt(self, timer=None, keys='space'):
         """ Waits indefinitely until a key in keys is pressed. Return the key that was pressed.
