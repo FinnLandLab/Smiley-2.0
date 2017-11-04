@@ -14,7 +14,7 @@ experiment = Experiment(participant, age_group)
 # ---------------- MAIN PROGRAM --------------------
 
 # Run task
-# task.run(experiment)
+task.run(experiment)
 
 # Run post-task
 post_task.run(experiment)
