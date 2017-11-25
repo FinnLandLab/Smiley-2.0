@@ -91,7 +91,7 @@ class Experiment:
 
         """
 
-        location = "{}/{}/{}/".format(OUTPUT_LOCATION, self.age_group, self.participant)
+        location = "{0}/{1}/{2}/{3}/".format(OUTPUT_LOCATION, self.section, self.age_group, self.participant)
 
         # Make sure the file directory exists
         if not os.path.exists(location):

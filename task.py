@@ -64,7 +64,10 @@ class Trial():
     def run(self):
         ''' Runs this trial'''
         timer = core.Clock()
-        self.experiment.window.show_text('{1} {0} {1}'.format(self.char, self.flanker))
+        # Experiment with size here!
+        self.experiment.window.show_text('{1} {0} {1}'.format(self.char, self.flanker), size=0.5)
+        # Don't record responces for the first 150 milliseconds
+        core.wait(0.150)
         result = self.experiment.window.wait_for_prompt(keys=[self.right_key, self.wrong_key])
         response_time = timer.getTime()
 

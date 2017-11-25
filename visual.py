@@ -11,14 +11,15 @@ _thisDir = os.path.dirname(
 os.chdir(_thisDir)
 
 
-def ask_user_info(title):
+def ask_user_info(title, info=None):
     """ A method used to ask the user for their participant id and their age group.
         Will quit if the user presses 'cancel'
 
         @param str title: The title of the pop-up box
         @return (str, str): A tuple with of (participant id, age group)
     """
-    info = {'Participant': '', 'Age group': ''}
+    if info is None:
+        info = {'Participant': '', 'Age group': ''}
 
     # Store info about the experiment session
     dialogue = gui.DlgFromDict(dictionary=info, title=title)
@@ -64,13 +65,13 @@ class Window:
             self._window.flip()
             self.wait_for_prompt()
 
-    def show_text(self, text):
+    def show_text(self, text, size=None):
         """ Shows the text text on the main screen"""
-        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman')
+        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman', height=size)
         text_element.draw()
         self._window.flip()
 
-    def wait_for_choice(self, prompt, choices):
+    def wait_for_choice(self, prompt, choices, size=None):
         """ Displays the given choices in lst choices with the given str prompt,
             and waits until one is picked. """
         # Display choices
@@ -79,21 +80,21 @@ class Window:
         for i in range(len(choices)):
             x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
 
-            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1, font='Times New Roman', pos=(x_loc, -0.5))
+            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1, font='Times New Roman', pos=(x_loc, -0.5), height=size)
             textWidth, textHeight = text.boundingBox
             textWidth = 2.0 * textWidth / self._window.size[0]
             textHeight = 2.0 * textHeight / self._window.size[1]
-            rect = visual.Rect(self._window, min(1.1 * textWidth, button_width), 1.1 * textHeight, lineColor=-1, pos=(x_loc, -0.5))
+            rect = visual.Rect(self._window, min(1.5 * textWidth, button_width), 1.5 * textHeight, lineColor=-1, pos=(x_loc, -0.5))
             buttons += [rect]
             rect.draw()
             text.draw()
 
         # Display the prompt
-        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1, font='Times New Roman')
+        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1, font='Times New Roman', height=size)
         text.draw()
 
         # Tell the user to use their mouse
-        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, font='Times New Roman', alignHoriz='left', pos=(-0.9, -textHeight))
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, font='Times New Roman', alignHoriz='left', pos=(-0.9, -textHeight), height=size)
         text.draw()
 
 
@@ -123,7 +124,7 @@ class Window:
             @rtype: str|None
         """
         # Clear the key's buffer:
-        event.getKeys()
+        event.clearEvents()
 
         if isinstance(keys, str):
             keys = [keys]

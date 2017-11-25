@@ -12,7 +12,7 @@ class Question():
 
     def ask(self):
         """ Ask this question and record the response"""
-        responce = self.experiment.window.wait_for_choice(self.question, self.options)
+        responce = self.experiment.window.wait_for_choice(self.question, self.options, size=None)
 
         data_point = [self.experiment.section,
                       self.experiment.participant_num, self.experiment.age_group,
@@ -34,6 +34,10 @@ def run(experiment):
     # Start a new section of the experiment we are in
     experiment.new_section('post-task')
 
+    # Show some slides before the post-task
+    experiment.window.show_images('instructions', 'before_all')
+
+
     # The answers that people can give
     yes_no_answer = ["Yes", "No"]
     quantity_answer = ["Very little", "A bit", "A lot"]
@@ -52,8 +56,8 @@ def run(experiment):
     # Ask if they noticed any relationships
     noticed_relationship.ask()
 
-    # Show the review slide
-    experiment.window.show_images('instructions', 'review')
+    # Show some images before the correlation questions
+    experiment.window.show_images('instructions', 'before_corr_questions')
 
     # Ask the remaining questions
     for question in questions:
