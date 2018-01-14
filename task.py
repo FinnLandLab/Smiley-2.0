@@ -10,20 +10,16 @@ class Trial:
     class DataPoint:
         """ A DataPoint for a trial"""
 
-        def __init__(self, character, flanker, trial_number, block):
+        def __init__(self, character, flanker, block):
             """ Creates a DataPoint for a trial in a block
 
             @param str character:
             @param str flanker:
-            @param int trial_number:
             @param Block block:
             """
             # Get the character and flanker for this trial
             self.char = character
             self.flanker = flanker
-
-            # Get the position of the trial within the task
-            self.trial_number = trial_number
 
             self.user_input = None
             self.response_time = None
@@ -65,12 +61,11 @@ class Trial:
             if not block.config.letters_corr_at:
                 self.helpful = -self.helpful
 
-    def __init__(self, character, flanker, trial_number, block):
+    def __init__(self, character, flanker, block):
         """ Initializes the Trial class
 
         @param str character:
         @param str flanker:
-        @param int trial_number:
         @param Block block:
         """
 
@@ -78,7 +73,7 @@ class Trial:
         self.window = block.window
         self.config = block.config
 
-        self.to_save = self.DataPoint(character, flanker, trial_number, block)
+        self.to_save = self.DataPoint(character, flanker, block)
 
     def run(self):
         """ Run this trial"""
@@ -91,9 +86,9 @@ class Trial:
         number_key = 'k' if self.config.letter_pair_j else 'j'
         self.window.show_legend('{0} for  letters, {1} for numbers'.format(letter_key, number_key), font_size=12)
 
-
-        # Don't record responses for the first 150 milliseconds
-        core.wait(0.150)
+        # Don't record responses for the first few milliseconds
+        if self.config.task_no_keyboard_response_time >= 0:
+            core.wait(self.config.task_no_keyboard_response_time)
 
         # Get the user's response
         self.to_save.user_input = self.window.wait_for_prompt(keys=[self.to_save.right_key, self.to_save.wrong_key])
@@ -113,9 +108,10 @@ class Block:
         def __init__(self, block_num, config):
             """ Create a DataPoint for a block"""
             self.block_num = block_num
+            self.trial_num = None
             self.__parent = config
 
-    def __init__(self, experiment, type_flanker_amounts, block_num):
+    def __init__(self, experiment, type_flanker_amounts, block_num, save):
 
         """ Initializes the block class
 
@@ -126,6 +122,8 @@ class Block:
         self.experiment = experiment
         self.window = experiment.window
         self.config = experiment.config
+
+        self.save = save
 
         self.to_save = self.DataPoint(block_num, self.config)
 
@@ -151,31 +149,42 @@ class Block:
         # Populate the list with trials
         for flanker in type_flanker_amounts['alphabetic']:
             for _ in range(type_flanker_amounts['alphabetic'][flanker]):
-                self.trials.append(Trial(experiment, next(letter_gen), flanker, self))
+                self.trials.append(Trial(next(letter_gen), flanker, self))
 
             for _ in range(type_flanker_amounts['numeric'][flanker]):
-                self.trials.append(Trial(experiment, next(num_gen), flanker, self))
+                self.trials.append(Trial(next(num_gen), flanker, self))
 
         # Randomize the trial presentation
         random.shuffle(self.trials)
 
     def run(self):
         """ Run this block"""
-        for i in range(len(self.trials)):
-            trial = self.trials[i]
+        for self.to_save.trial_num in range(len(self.trials)):
+            trial = self.trials[self.to_save.trial_num]
             trial.run()
-            self.experiment.push_data(trial.to_save)
+            if self.save:
+                self.experiment.push_data(trial.to_save)
             if self.config.interstimulus_interval != 0:
                 core.wait(self.config.interstimulus_interval)
 
 
 def run(experiment):
-    """ Run the main experiment task"""
+    """ Run this task for the given experiment
+
+    @param experiment.Experiment experiment:
+    @return:
+    """
+
     # Start a new section of the experiment we are in
     experiment.new_section('task')
 
+    # Show a practice block
+    if experiment.config.practice_run:
+        practice_trial_amounts = {'alphabetic': {'$': 5}, 'numeric': {'$': 5}}
+        Block(experiment, practice_trial_amounts, -1, save=False).run()
+
     # How many trials for each type of character and each type of flanker
-    trial_amounts = {'alphabetic': {'#': [8] * 6}, 'numeric':{'#':[8] * 6}}
+    trial_amounts = {'alphabetic': {'#': [8] * 6}, 'numeric': {'#': [8] * 6}}
 
     # Assume that experiment.letters_corr_at is True
     # Note we know that for each character the trial amounts add up to 32
@@ -188,11 +197,11 @@ def run(experiment):
     trial_amounts['numeric']['@'] = [24 - i for i in trial_amounts['numeric']['*']]
 
     # But if experiment.letters_corr_at is False, switch the occurrences
-    if not experiment.letters_corr_at:
+    if not experiment.config.letters_corr_at:
         trial_amounts['alphabetic'], trial_amounts['numeric'] = trial_amounts['numeric'], trial_amounts['alphabetic']
 
     # Show some instructions
-    if experiment.letter_pair_j:
+    if experiment.config.letter_pair_j:
         experiment.window.show_image_sequence('instructions', 'start_j_letter')
     else:
         experiment.window.show_image_sequence('instructions', 'start_j_number')
@@ -204,7 +213,7 @@ def run(experiment):
                                 for char_type in trial_amounts}
 
         # Run the block that is represented by the trial amounts
-        Block(experiment, type_flanker_amounts, block_num).run()
+        Block(experiment, type_flanker_amounts, block_num, save=True).run()
 
         # Give them a break before the next block, unless it's the last block
         if block_num < 5:

@@ -7,7 +7,9 @@ class Configuration:
         """ Creates a configuration with the following values"""
         self.output_location = "data"
         self.practice_run = True
-        self.interstimulus_interval = 0
+
+        self.task_no_keyboard_response_time = 0.150
+        self.task_interstimulus_interval = 0
 
         # Dynamically generated
         # Save the age group and participant
