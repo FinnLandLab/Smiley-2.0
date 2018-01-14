@@ -87,9 +87,7 @@ class Trial:
 
         # Experiment with size here!
         self.window.show_text(text=text, font_size=24,
-                              legend=legend, legend_font_size=12)
-
-
+                              legend=legend, legend_font_size=24)
 
         # Don't record responses for the first few milliseconds
         if self.config.task_no_keyboard_response_time >= 0:
@@ -169,8 +167,8 @@ class Block:
             trial.run()
             if self.save:
                 self.experiment.push_data(trial.to_save)
-            if self.config.interstimulus_interval != 0:
-                core.wait(self.config.interstimulus_interval)
+            if self.config.task_interstimulus_interval >= 0:
+                core.wait(self.config.task_interstimulus_interval)
 
 
 def run(experiment):

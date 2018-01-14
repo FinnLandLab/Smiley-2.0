@@ -46,15 +46,14 @@ class Window:
         self._instruction_image = visual.ImageStim(win=self._window, units='norm', size=(2, 2))
 
     def norm_to_cm(self, norm):
-        x = norm[0] * self._window.size[0] / 2.0
-        y = norm[1] * self._window.size[1] / 2.0
-        return psychopy.tools.monitorunittools.pix2cm((x, y), self._window.monitor)
+        x = psychopy.tools.monitorunittools.pix2cm(norm[0] * self._window.size[0] / 2.0, self._window.monitor)
+        y = psychopy.tools.monitorunittools.pix2cm(norm[1] * self._window.size[1] / 2.0,  self._window.monitor)
+        return x, y
 
     def px_to_norm(self, px):
         x = 2.0 * px[0] / self._window.size[0]
         y = 2.0 * px[1] / self._window.size[1]
         return x, y
-
 
     def show_image_sequence(self, genre, subgenre='', task=None, extension='.png'):
         """ Shows all the images which follow the pattern
@@ -88,8 +87,8 @@ class Window:
         if legend is not None:
             legend_font_size_cm = pt_to_cm(legend_font_size)
             text_element = visual.TextStim(self._window, text=legend, wrapWidth=None, color=-1, font='Times New Roman',
-                                           units='cm', height=legend_font_size_cm, alignVert='bottom')
-            text.pos = self.norm_to_cm((0, -1))
+                                           units='cm', height=legend_font_size_cm, alignVert='bottom',
+                                           pos=self.norm_to_cm((0, -1)))
             text_element.draw()
         self._window.flip()
 
