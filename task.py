@@ -168,9 +168,9 @@ def run(experiment):
 
     # Show some instructions
     if experiment.letter_pair_j:
-        experiment.window.show_images('instructions', 'start_j_letter')
+        experiment.window.show_image_sequence('instructions', 'start_j_letter')
     else:
-        experiment.window.show_images('instructions', 'start_j_number')
+        experiment.window.show_image_sequence('instructions', 'start_j_number')
 
     for block_num in range(6):
         # Take only the i'th value of the trial_amounts amounts
@@ -183,6 +183,6 @@ def run(experiment):
 
         # Give them a break before the next block, unless it's the last block
         if block_num < 5:
-            experiment.window.show_images('instructions', 'break')
+            experiment.window.show_image_sequence('instructions', 'break')
 
     experiment.save_data()

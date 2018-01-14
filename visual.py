@@ -1,25 +1,18 @@
 """ A package that focuses on the user interaction"""
 
 from psychopy import visual, event, gui, core
-import sys, os
+import sys
 from glob import glob
 
-# ---------------- VERIFICATION --------------------
-# Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(
-    os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
-os.chdir(_thisDir)
 
-
-def ask_user_info(title, info=None):
+def ask_user_info(title):
     """ A method used to ask the user for their participant id and their age group.
         Will quit if the user presses 'cancel'
 
         @param str title: The title of the pop-up box
         @return (str, str): A tuple with of (participant id, age group)
     """
-    if info is None:
-        info = {'Participant': '', 'Age group': ''}
+    info = {'Participant': '', 'Age group': ''}
 
     # Store info about the experiment session
     dialogue = gui.DlgFromDict(dictionary=info, title=title)
@@ -30,6 +23,14 @@ def ask_user_info(title, info=None):
 
     # Return the results
     return info['Participant'], info['Age group']
+
+
+def pt_to_cm(pt):
+    """ Convert from pt to cm
+    @param float pt: pt to be converted
+    @return float: cm equivalent
+    """
+    return pt * 0.035277778
 
 
 class Window:
@@ -43,8 +44,7 @@ class Window:
 
         self._instruction_image = visual.ImageStim(win=self._window, units='norm', size=(2, 2))
 
-
-    def show_images(self, genre, subgenre='', task=None, extension='.png'):
+    def show_image_sequence(self, genre, subgenre='', task=None, extension='.png'):
         """ Shows all the images which follow the pattern
         'image/{task}/{genre}/{subgenre}/*{extension}', in ascending order.
 
@@ -65,38 +65,47 @@ class Window:
             self._window.flip()
             self.wait_for_prompt()
 
-    def show_text(self, text, size=None):
-        """ Shows the text text on the main screen"""
-        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman', height=size)
+    def show_text(self, text, font_size=24):
+        """ Shows the text text on the main screen. font size in pt"""
+        # convert size to cm
+        font_size_cm = pt_to_cm(font_size)
+        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1,
+                                       font='Times New Roman', units='cm', height=font_size_cm)
         text_element.draw()
         self._window.flip()
 
-    def wait_for_choice(self, prompt, choices, size=None):
+    def wait_for_choice(self, prompt, choices, font_size=24):
         """ Displays the given choices in lst choices with the given str prompt,
             and waits until one is picked. """
+        font_size_cm = pt_to_cm(font_size)
+
         # Display choices
         button_width = 2 / (len(choices) + 1.0)
         buttons = []
+
         for i in range(len(choices)):
             x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
 
-            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1, font='Times New Roman', pos=(x_loc, -0.5), height=size)
-            textWidth, textHeight = text.boundingBox
-            textWidth = 2.0 * textWidth / self._window.size[0]
-            textHeight = 2.0 * textHeight / self._window.size[1]
-            rect = visual.Rect(self._window, min(1.5 * textWidth, button_width), 1.5 * textHeight, lineColor=-1, pos=(x_loc, -0.5))
+            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1,
+                                   font='Times New Roman', pos=(x_loc, -0.5), height=font_size_cm)
+            text_width, text_height = text.boundingBox
+            text_width = 2.0 * text_width / self._window.size[0]
+            text_height = 2.0 * text_height / self._window.size[1]
+            rect = visual.Rect(self._window, min(1.5 * text_width, button_width),
+                               1.5 * text_height, lineColor=-1, pos=(x_loc, -0.5))
             buttons += [rect]
             rect.draw()
             text.draw()
 
         # Display the prompt
-        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1, font='Times New Roman', height=size)
+        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1,
+                               font='Times New Roman', height=font_size_cm)
         text.draw()
 
         # Tell the user to use their mouse
-        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, font='Times New Roman', alignHoriz='left', pos=(-0.9, -textHeight), height=size)
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, units='cm',
+                               font='Times New Roman', alignHoriz='left', pos=(-0.9, -text_height), height=font_size_cm)
         text.draw()
-
 
         self._window.flip()
 
@@ -112,8 +121,6 @@ class Window:
                 sys.exit()
 
             core.wait(0.01, hogCPUperiod=0)
-
-
 
     def wait_for_prompt(self, timer=None, keys='space'):
         """ Waits indefinitely until a key in keys is pressed. Return the key that was pressed.
