@@ -79,12 +79,17 @@ class Trial:
         """ Run this trial"""
         timer = core.Clock()
 
-        # Experiment with size here!
-        self.window.show_text('{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker), font_size=24)
+        text = '{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker)
 
         letter_key = 'j' if self.config.letter_pair_j else 'k'
         number_key = 'k' if self.config.letter_pair_j else 'j'
-        self.window.show_legend('{0} for  letters, {1} for numbers'.format(letter_key, number_key), font_size=12)
+        legend = '{0} for  letters, {1} for numbers'.format(letter_key, number_key)
+
+        # Experiment with size here!
+        self.window.show_text(text=text, font_size=24,
+                              legend=legend, legend_font_size=12)
+
+
 
         # Don't record responses for the first few milliseconds
         if self.config.task_no_keyboard_response_time >= 0:
