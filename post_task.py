@@ -12,22 +12,25 @@ class Question():
 
     def ask(self):
         """ Ask this question and record the response"""
-        responce = self.experiment.window.wait_for_choice(self.question, self.options, size=None)
+        response = self.experiment.window.wait_for_choice(self.question, self.options, size=None)
 
         data_point = [self.experiment.section,
                       self.experiment.participant_num, self.experiment.age_group,
                       self.experiment.date,
                       self.experiment.condition,
                       int(self.experiment.letters_corr_at), int(self.experiment.letter_pair_j),
-                      self.question, responce]
+                      self.question, response]
 
         self.experiment.push_data(data_point)
+
 
 def random_number():
     return choice("2345678")
 
+
 def random_letter():
     return choice("ABCDEFGH")
+
 
 def run(experiment):
     """ Run the post-task for this experiment"""
@@ -36,7 +39,6 @@ def run(experiment):
 
     # Show some slides before the post-task
     experiment.window.show_images('instructions', 'before_all')
-
 
     # The answers that people can give
     yes_no_answer = ["Yes", "No"]

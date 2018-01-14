@@ -1,53 +1,8 @@
 import os
-import sys
 import visual
 import config
 from pandas import DataFrame
 
-
-# ---------------- VERIFICATION --------------------
-# Ensure that relative paths start from the same directory as this script
-_thisDir = os.path.dirname(
-    os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
-os.chdir(_thisDir)
-
-# --------------------------------------------------
-# --------------------  CONFIG  --------------------
-# --------------------------------------------------
-# The relative directory that data will be saved to.
-OUTPUT_LOCATION = "data"
-
-# The names of the variables being recorded for the n-back task. Corresponds to DATA_HEADER_TASK
-DATA_NAMES_TASK = ["experiment",
-                   "participant id", "group",
-                   "block number", "trial number",
-                   "date",
-                   "condition",
-                   "letters_corr_at", "letter_pair_j",
-                   "character", "type",
-                   "flanker", "helpful",
-                   "expected response",
-                   "user response", "reaction time"]
-
-# The header for the csv file being saved for the n-back task
-DATA_HEADER_TASK = ",".join(DATA_NAMES_TASK)
-
-# The names of the variables being recorded for the post task. Corresponds to DATA_HEADER_POST
-DATA_NAMES_POST = ["experiment",
-                   "participant id", "group",
-                   "date",
-                   "condition",
-                   "letters_corr_at", "letter_pair_j",
-                   "question",
-                   "user response"]
-
-# The header for the csv file being saved for the post task
-DATA_HEADER_POST = ",".join(DATA_NAMES_POST)
-
-
-# ---------------------------------------------------
-# -------------------  MAIN CODE  -------------------
-# ---------------------------------------------------
 
 class Experiment:
     """ A general experiment class containing all the information for the experiment.

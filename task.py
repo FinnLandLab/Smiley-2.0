@@ -3,89 +3,106 @@
 from psychopy import core
 import random
 
-# -----------------------------------------------------------
-# -----------------------  CONSTANTS  -----------------------
-# -----------------------------------------------------------
 
-# In seconds
-INTERSTIMULUS_INTERVAL = 0
+class Trial:
+    """ A trial in the main task"""
 
+    class DataPoint:
+        """ A DataPoint for a trial"""
 
-class Trial():
-    ''' The trial class'''
+        def __init__(self, character, flanker, trial_number, block):
+            """ Creates a DataPoint for a trial in a blck"""
+            # Get the character and flanker for this trial
+            self.char = character
+            self.flanker = flanker
 
-    def __init__(self, experiment, character, flanker):
+            # Get the position of the trial within the task
+            self.trial_number = trial_number
+
+            self.user_input = None
+            self.response_time = None
+            self.correct = None
+
+            self.__parent = block.to_save
+
+            # Get the type of the trial
+            if character in '23456789':
+                self.type = 'numeric'
+            elif character.isalpha():
+                self.type = 'alphabetic'
+            else:
+                raise Exception("Character '{}' is not in the allowed set of characters".format(character))
+
+            # Get the correct keys for this trial:
+            # Suppose we have that letter_pair_j is true. Then
+            if self.type == 'alphabetic':
+                self.right_key = 'j'
+                self.wrong_key = 'k'
+            else:
+                self.right_key = 'k'
+                self.wrong_key = 'j'
+
+            # If that is not the case, swap them
+            if not block.config.letter_pair_j:
+                self.right_key, self.wrong_key = self.wrong_key, self.right_key
+
+            # Use the same trick here
+            if flanker == '#':
+                self.helpful = 0
+            elif (self.type == 'alphabetic' and self.flanker == '@') or (
+                    self.type == 'numeric' and self.flanker == '*'):
+                self.helpful = 1
+            else:
+                self.helpful = -1
+
+            # If letters_corr_at is false, then we have the opposite helpfulness
+            if not block.config.letters_corr_at:
+                self.helpful = -self.helpful
+
+    def __init__(self, character, flanker, trial_number, block):
         """ Initializes the Trial class"""
-        self.experiment = experiment
+        self.experiment = block.experiment
+        self.window = block.window
+        self.config = block.config
 
-        assert isinstance(character, str), "character '{}' is not a string".format(character)
-        assert len(character) == 1, "character '{}' must have length 1".format(character)
-
-        assert flanker in '#@*' and len(flanker) == 1, "flanker '{}' is not '#', '@', or '*'".format(flanker)
-
-        # Get the type of the trial
-        if character in '23456789':
-            self.type = 'numeric'
-        elif character.isalpha():
-            self.type = 'alphabetic'
-        else:
-            raise Exception("Character '{}' is not in the allowed set of characters".format(character))
-
-        # Get the correct keys for this trial:
-        # Suppose we have that letter_pair_j is true. Then
-        if self.type == 'alphabetic':
-            self.right_key = 'j'
-            self.wrong_key = 'k'
-        else:
-            self.right_key = 'k'
-            self.wrong_key = 'j'
-        # If that is not the case, swap them
-        if not experiment.letter_pair_j:
-            self.right_key, self.wrong_key = self.wrong_key, self.right_key
-
-        # Get the character and flanker for this trial
-        self.char = character
-        self.flanker = flanker
-
-        # check if the trial is helpful:
-        # Suppose that letters_corr_at is true. Then we get:
-        if flanker == '#':
-            self.helpful = 0
-        elif (self.type == 'alphabetic' and self.flanker == '@') or (self.type == 'numeric' and self.flanker == '*'):
-            self.helpful = 1
-        else:
-            self.helpful = -1
-
-        # If letters_corr_at is false, then we have the opposite helpfulness
-        if not experiment.letters_corr_at:
-            self.helpful = -self.helpful
-
+        self.to_save = self.DataPoint(character, flanker, block, trial_number)
 
     def run(self):
-        ''' Runs this trial'''
+        """ Run this trial"""
         timer = core.Clock()
         # Experiment with size here!
-        self.experiment.window.show_text('{1} {0} {1}'.format(self.char, self.flanker), size=0.5)
-        # Don't record responces for the first 150 milliseconds
+        self.window.show_text('{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker), size=0.5)
+
+        # Don't record responses for the first 150 milliseconds
         core.wait(0.150)
-        result = self.experiment.window.wait_for_prompt(keys=[self.right_key, self.wrong_key])
-        response_time = timer.getTime()
 
-        return result, response_time
+        # Get the user's response
+        self.to_save.user_input = self.window.wait_for_prompt(keys=[self.to_save.right_key, self.to_save.wrong_key])
+        self.to_save.response_time = timer.getTime()
+        self.to_save.correct = (self.to_save.user_input == self.to_save.right_key)
 
 
-class Block():
-    ''' The Block class.
+class Block:
+    """ The Block class.
     Each block has 64 trials. 32 trials are numeric, 32 are alphabetic.
     The number of flankers per block will vary.
-    '''
+    """
 
+    class DataPoint:
+        """ A DataPoint for a Block"""
+
+        def __init__(self, block_num, config):
+            """ Create a DataPoint for a block"""
+            self.block_num = block_num
+            self.__parent = config
 
     def __init__(self, experiment, type_flanker_amounts, block_num):
-        ''' Initializes the block class.'''
+        """ Initializes the block class."""
         self.experiment = experiment
-        # Store the block number
-        self.block_num = block_num
+        self.window = experiment.window
+        self.config = experiment.config
+
+        self.to_save = self.DataPoint(block_num, self.config)
 
         # The numbers and letters to be included
         nums = '23456789'
@@ -109,10 +126,10 @@ class Block():
         # Populate the list with trials
         for flanker in type_flanker_amounts['alphabetic']:
             for _ in range(type_flanker_amounts['alphabetic'][flanker]):
-                self.trials.append(Trial(experiment, next(letter_gen), flanker))
+                self.trials.append(Trial(experiment, next(letter_gen), flanker, self))
 
             for _ in range(type_flanker_amounts['numeric'][flanker]):
-                self.trials.append(Trial(experiment, next(num_gen), flanker))
+                self.trials.append(Trial(experiment, next(num_gen), flanker, self))
 
         # Randomize the trial presentation
         random.shuffle(self.trials)
@@ -121,22 +138,10 @@ class Block():
         """ Run this block"""
         for i in range(len(self.trials)):
             trial = self.trials[i]
-            responce, responce_time = trial.run()
-
-            data_point = [self.experiment.section,
-                          self.experiment.participant_num, self.experiment.age_group,
-                          self.block_num, i,
-                          self.experiment.date,
-                          self.experiment.condition,
-                          int(self.experiment.letters_corr_at), int(self.experiment.letter_pair_j),
-                          trial.char, trial.type,
-                          trial.flanker, trial.helpful,
-                          trial.right_key,
-                          responce, responce_time]
-
-            self.experiment.push_data(data_point)
-            if INTERSTIMULUS_INTERVAL != 0:
-                core.wait(INTERSTIMULUS_INTERVAL)
+            trial.run()
+            self.experiment.push_data(trial.to_save)
+            if self.config.interstimulus_interval != 0:
+                core.wait(self.config.interstimulus_interval)
 
 
 def run(experiment):
@@ -145,7 +150,7 @@ def run(experiment):
     experiment.new_section('task')
 
     # How many trials for each type of character and each type of flanker
-    trial_amounts = {'alphabetic': {'#':[8] * 6}, 'numeric':{'#':[8] * 6}}
+    trial_amounts = {'alphabetic': {'#': [8] * 6}, 'numeric':{'#':[8] * 6}}
 
     # Assume that experiment.letters_corr_at is True
     # Note we know that for each character the trial amounts add up to 32
@@ -157,7 +162,7 @@ def run(experiment):
     random.shuffle(trial_amounts['numeric']['*'])
     trial_amounts['numeric']['@'] = [24 - i for i in trial_amounts['numeric']['*']]
 
-    # But if experiment.letters_corr_at is False, switch the occurences
+    # But if experiment.letters_corr_at is False, switch the occurrences
     if not experiment.letters_corr_at:
         trial_amounts['alphabetic'], trial_amounts['numeric'] = trial_amounts['numeric'], trial_amounts['alphabetic']
 
@@ -167,14 +172,17 @@ def run(experiment):
     else:
         experiment.window.show_images('instructions', 'start_j_number')
 
-    for i in range(6):
+    for block_num in range(6):
         # Take only the i'th value of the trial_amounts amounts
-        type_flanker_amounts = {ctype:{ftype: trial_amounts[ctype][ftype][i] for ftype in trial_amounts[ctype]} for ctype in trial_amounts}
-        # Run the block that is represented by the trial amounts
-        Block(experiment, type_flanker_amounts, i).run()
+        type_flanker_amounts = {char_type: {flanker_type: trial_amounts[char_type][flanker_type][block_num]
+                                            for flanker_type in trial_amounts[char_type]}
+                                for char_type in trial_amounts}
 
-        # Give them a break before the next block
-        if i < 5:
+        # Run the block that is represented by the trial amounts
+        Block(experiment, type_flanker_amounts, block_num).run()
+
+        # Give them a break before the next block, unless it's the last block
+        if block_num < 5:
             experiment.window.show_images('instructions', 'break')
 
     experiment.save_data()
