@@ -50,6 +50,9 @@ class Window:
         y = psychopy.tools.monitorunittools.pix2cm(norm[1] * self._window.size[1] / 2.0,  self._window.monitor)
         return x, y
 
+    def norm_magn_to_cm_magn(self, norm_magn):
+        return self.norm_to_cm((norm_magn, 0))[0]
+
     def px_to_norm(self, px):
         x = 2.0 * px[0] / self._window.size[0]
         y = 2.0 * px[1] / self._window.size[1]
@@ -123,14 +126,14 @@ class Window:
             text.draw()
 
         # Display the prompt
-        text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1,
+        text = visual.TextStim(self._window, text=prompt, wrapWidth=self.norm_magn_to_cm_magn(2), color=-1,
                                font='Times New Roman', units='cm', height=font_size_cm)
         text.draw()
 
         # Tell the user to use their mouse
-        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1,
-                               font='Times New Roman', alignHoriz='left', pos=self.norm_to_cm((-0.9, -text_height)),
-                               units='cm', height=font_size_cm)
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=self.norm_magn_to_cm_magn(2),
+                               color=-1, font='Times New Roman', alignHoriz='left',
+                               pos=self.norm_to_cm((-0.9, -text_height)), units='cm', height=font_size_cm)
         text.draw()
 
         self._window.flip()
