@@ -181,8 +181,15 @@ def run(experiment):
     # Start a new section of the experiment we are in
     experiment.new_section('task')
 
+    # Show some instructions
+    if experiment.config.letter_pair_j:
+        experiment.window.show_image_sequence('instructions', 'start_j_letter')
+    else:
+        experiment.window.show_image_sequence('instructions', 'start_j_number')
+
     # Show a practice block
     if experiment.config.practice_run:
+        experiment.window.show_image_sequence('instructions', 'practice')
         practice_trial_amounts = {'alphabetic': {'$': 5}, 'numeric': {'$': 5}}
         Block(experiment, practice_trial_amounts, -1, save=False).run()
 
@@ -203,12 +210,7 @@ def run(experiment):
     if not experiment.config.letters_corr_at:
         trial_amounts['alphabetic'], trial_amounts['numeric'] = trial_amounts['numeric'], trial_amounts['alphabetic']
 
-    # Show some instructions
-    if experiment.config.letter_pair_j:
-        experiment.window.show_image_sequence('instructions', 'start_j_letter')
-    else:
-        experiment.window.show_image_sequence('instructions', 'start_j_number')
-
+    experiment.window.show_image_sequence('instructions', 'task')
     for block_num in range(6):
         # Take only the i'th value of the trial_amounts amounts
         type_flanker_amounts = {char_type: {flanker_type: trial_amounts[char_type][flanker_type][block_num]
