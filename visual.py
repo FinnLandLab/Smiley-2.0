@@ -1,6 +1,7 @@
 """ A package that focuses on the user interaction"""
 
 from psychopy import visual, event, gui, core
+import psychopy.tools.monitorunittools
 import sys
 from glob import glob
 
@@ -44,6 +45,17 @@ class Window:
 
         self._instruction_image = visual.ImageStim(win=self._window, units='norm', size=(2, 2))
 
+    def norm_to_cm(self, norm):
+        x = norm[0] * self._window.size[0] / 2.0
+        y = norm[1] * self._window.size[1] / 2.0
+        return psychopy.tools.monitorunittools.pix2cm((x, y), self._window.monitor)
+
+    def px_to_norm(self, px):
+        x = 2.0 * px[0] / self._window.size[0]
+        y = 2.0 * px[1] / self._window.size[1]
+        return x, y
+
+
     def show_image_sequence(self, genre, subgenre='', task=None, extension='.png'):
         """ Shows all the images which follow the pattern
         'image/{task}/{genre}/{subgenre}/*{extension}', in ascending order.
@@ -65,24 +77,20 @@ class Window:
             self._window.flip()
             self.wait_for_prompt()
 
-    def show_text(self, text, font_size=24):
-        """ Shows the text text on the main screen. font size in pt"""
+    def show_text(self, text, font_size=24, legend=None, legend_font_size=24):
+        """ Shows the text text on the main screen. font size in pt. Optionally shows a legend beneath the text"""
         # convert size to cm
         font_size_cm = pt_to_cm(font_size)
         text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1,
                                        font='Times New Roman', units='cm', height=font_size_cm)
         text_element.draw()
-        self._window.flip()
 
-    def show_legend(self, text, font_size=24):
-        """ Shows the text text on the main screen. font size in pt"""
-        # convert size to cm
-        font_size_cm = pt_to_cm(font_size)
-        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman',
-                                       units='norm', pos=(0, -1), alignVert='bottom')
-        text_element.units = 'cm'
-        text_element.height = font_size_cm
-        text_element.draw()
+        if legend is not None:
+            legend_font_size_cm = pt_to_cm(legend_font_size)
+            text_element = visual.TextStim(self._window, text=legend, wrapWidth=None, color=-1, font='Times New Roman',
+                                           units='cm', height=legend_font_size_cm, alignVert='bottom')
+            text.pos = self.norm_to_cm((0, -1))
+            text_element.draw()
         self._window.flip()
 
     def wait_for_choice(self, prompt, choices, font_size=24):
@@ -97,15 +105,12 @@ class Window:
         for i in range(len(choices)):
             x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
 
-            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1,
-                                   font='Times New Roman', pos=(x_loc, -0.5))
-            text.units = 'cm'
-            text.height = font_size_cm
+            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1,
+                                   color=-1, font='Times New Roman', units='cm',
+                                   pos=self.norm_to_cm((x_loc, -0.5)), height=font_size_cm)
 
             # Find the desired box height and width
-            text_width, text_height = text.boundingBox
-            text_width = 2.0 * text_width / self._window.size[0]
-            text_height = 2.0 * text_height / self._window.size[1]
+            text_width, text_height = self.px_to_norm(text.boundingBox)
 
             # Make a box
             rect = visual.Rect(self._window, min(1.5 * text_width, button_width),
@@ -125,9 +130,8 @@ class Window:
 
         # Tell the user to use their mouse
         text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1,
-                               font='Times New Roman', alignHoriz='left', pos=(-0.9, -text_height))
-        text.units = 'cm'
-        text.height = font_size_cm
+                               font='Times New Roman', alignHoriz='left', pos=self.norm_to_cm((-0.9, -text_height)),
+                               units='cm', height=font_size_cm)
         text.draw()
 
         self._window.flip()
@@ -193,9 +197,7 @@ class Window:
         prompt = "" if prompt is None or prompt == "" else prompt + ". "
         text = prompt + "Please type in your answer, press the key '0' to submit it:"
         text_instr = visual.TextStim(win=self._window, text=text, color=-1, alignHoriz='left', alignVert='top',
-                                     units='norm', pos=(-1, 1))
-        text_instr.units = 'cm'
-        text_instr.height = font_size_cm
+                                     units='cm', pos=self.norm_to_cm((-1, 1)), height=font_size_cm)
 
         # Set up a textbox for user input
         input_text = ""
