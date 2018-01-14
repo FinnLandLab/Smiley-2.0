@@ -14,10 +14,11 @@ class Experiment:
         self.section = 'setup'
         self._data = []
         self._data_type = None
-        self.window = visual.Window(self)
 
         self.participant, self.age_group = visual.ask_user_info(self.name)
         self.config = config.Configuration(self.participant, self.age_group)
+
+        self.window = visual.Window(self)
 
     def push_data(self, data_point):
         """ Adds a data point to be saved later.

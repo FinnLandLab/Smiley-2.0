@@ -74,6 +74,17 @@ class Window:
         text_element.draw()
         self._window.flip()
 
+    def show_legend(self, text, font_size=24):
+        """ Shows the text text on the main screen. font size in pt"""
+        # convert size to cm
+        font_size_cm = pt_to_cm(font_size)
+        text_element = visual.TextStim(self._window, text=text, wrapWidth=None, color=-1, font='Times New Roman',
+                                       units='norm', pos=(0, -1), alignVert='bottom')
+        text_element.units = 'cm'
+        text_element.height = font_size_cm
+        text_element.draw()
+        self._window.flip()
+
     def wait_for_choice(self, prompt, choices, font_size=24):
         """ Displays the given choices in lst choices with the given str prompt,
             and waits until one is picked. """
@@ -87,24 +98,36 @@ class Window:
             x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
 
             text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1, color=-1,
-                                   font='Times New Roman', pos=(x_loc, -0.5), height=font_size_cm)
+                                   font='Times New Roman', pos=(x_loc, -0.5))
+            text.units = 'cm'
+            text.height = font_size_cm
+
+            # Find the desired box height and width
             text_width, text_height = text.boundingBox
             text_width = 2.0 * text_width / self._window.size[0]
             text_height = 2.0 * text_height / self._window.size[1]
+
+            # Make a box
             rect = visual.Rect(self._window, min(1.5 * text_width, button_width),
                                1.5 * text_height, lineColor=-1, pos=(x_loc, -0.5))
+
+            # Add the rect to the set of buttons
             buttons += [rect]
+
+            # Draw the button
             rect.draw()
             text.draw()
 
         # Display the prompt
         text = visual.TextStim(self._window, text=prompt, wrapWidth=2, color=-1,
-                               font='Times New Roman', height=font_size_cm)
+                               font='Times New Roman', units='cm', height=font_size_cm)
         text.draw()
 
         # Tell the user to use their mouse
-        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1, units='cm',
-                               font='Times New Roman', alignHoriz='left', pos=(-0.9, -text_height), height=font_size_cm)
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=2, color=-1,
+                               font='Times New Roman', alignHoriz='left', pos=(-0.9, -text_height))
+        text.units = 'cm'
+        text.height = font_size_cm
         text.draw()
 
         self._window.flip()
@@ -154,3 +177,54 @@ class Window:
     def close(self):
         """ Closes this window"""
         self._window.close()
+
+    def get_input_text(self, prompt=None, font_size=24):
+        """ Gets user input as text. The prompt
+
+        @return: The text the user inputted until they pressed the key '0'
+        @rtype: str
+        """
+        font_size_cm = pt_to_cm(font_size)
+
+        # Clear the keys buffer
+        event.getKeys()
+
+        # Set up a text box for instructions
+        prompt = "" if prompt is None or prompt == "" else prompt + ". "
+        text = prompt + "Please type in your answer, press the key '0' to submit it:"
+        text_instr = visual.TextStim(win=self._window, text=text, color=-1, alignHoriz='left', alignVert='top',
+                                     units='norm', pos=(-1, 1))
+        text_instr.units = 'cm'
+        text_instr.height = font_size_cm
+
+        # Set up a textbox for user input
+        input_text = ""
+        input_box = visual.TextStim(win=self._window, text=input_text, color=-1, units='cm', height=font_size_cm)
+
+        # Get user input
+        inputting = True
+
+        while inputting:
+            keys = event.getKeys()
+            for key in keys:
+                if key == '0':
+                    inputting = False
+                    break
+                elif key == 'escape':
+                    self.experiment.save_data()
+                    core.quit()
+
+                elif key == 'space':
+                    input_text += ' '
+
+                elif key == 'backspace':
+                    if len(input_text) > 0:
+                        input_text = input_text[:-1]
+                elif len(key) == 1 and key.isalpha():
+                    input_text += key
+            input_box.text = input_text
+            input_box.draw()
+            text_instr.draw()
+            self._window.flip()
+
+        return input_text

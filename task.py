@@ -11,7 +11,13 @@ class Trial:
         """ A DataPoint for a trial"""
 
         def __init__(self, character, flanker, trial_number, block):
-            """ Creates a DataPoint for a trial in a blck"""
+            """ Creates a DataPoint for a trial in a block
+
+            @param str character:
+            @param str flanker:
+            @param int trial_number:
+            @param Block block:
+            """
             # Get the character and flanker for this trial
             self.char = character
             self.flanker = flanker
@@ -60,18 +66,31 @@ class Trial:
                 self.helpful = -self.helpful
 
     def __init__(self, character, flanker, trial_number, block):
-        """ Initializes the Trial class"""
+        """ Initializes the Trial class
+
+        @param str character:
+        @param str flanker:
+        @param int trial_number:
+        @param Block block:
+        """
+
         self.experiment = block.experiment
         self.window = block.window
         self.config = block.config
 
-        self.to_save = self.DataPoint(character, flanker, block, trial_number)
+        self.to_save = self.DataPoint(character, flanker, trial_number, block)
 
     def run(self):
         """ Run this trial"""
         timer = core.Clock()
+
         # Experiment with size here!
-        self.window.show_text('{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker), size=0.5)
+        self.window.show_text('{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker), font_size=24)
+
+        letter_key = 'j' if self.config.letter_pair_j else 'k'
+        number_key = 'k' if self.config.letter_pair_j else 'j'
+        self.window.show_legend('{0} for  letters, {1} for numbers'.format(letter_key, number_key), font_size=12)
+
 
         # Don't record responses for the first 150 milliseconds
         core.wait(0.150)
@@ -97,7 +116,13 @@ class Block:
             self.__parent = config
 
     def __init__(self, experiment, type_flanker_amounts, block_num):
-        """ Initializes the block class."""
+
+        """ Initializes the block class
+
+        @param experiment.Experiment experiment:
+        @param dict[str, dict[str, list[int]] type_flanker_amounts:
+        @param int block_num:
+        """
         self.experiment = experiment
         self.window = experiment.window
         self.config = experiment.config
