@@ -4,25 +4,31 @@ from random import choice, random
 class MultipleChoice:
     """ A class for asking questions"""
 
+    class DataPoint:
+        """ A DataPoint for this multiple choice question"""
+
+        def __init__(self, question, options, config):
+            """ Initialize a DataPoint"""
+            self.question = question
+            self.options = options
+            self.__parent = config
+            self.user_response = None
+
     def __init__(self, experiment, question, options):
         """ Initializes this Question class with question {question},
         for the experiment {experiment} """
         self.experiment = experiment
-        self.question = question
-        self.options = options
+        self.window = experiment.window
+        self.config = experiment.config
+
+        self.to_save = self.DataPoint(question, options, self.config)
 
     def ask(self):
         """ Ask this question and record the response"""
-        response = self.experiment.window.wait_for_choice(self.question, self.options, font_size=24)
+        self.to_save.user_response = self.experiment.window.wait_for_choice(self.to_save.question,
+                                                                            self.to_save.options, font_size=24)
 
-        data_point = [self.experiment.section,
-                      self.experiment.participant_num, self.experiment.age_group,
-                      self.experiment.date,
-                      self.experiment.condition,
-                      int(self.experiment.letters_corr_at), int(self.experiment.letter_pair_j),
-                      self.question, response]
-
-        self.experiment.push_data(data_point)
+        self.experiment.push_data(self.to_save)
 
 
 def random_number():
@@ -39,7 +45,7 @@ def run(experiment):
     experiment.new_section('post-task')
 
     # Show some slides before the post-task
-    experiment.window.show_image_sequence('instructions', 'before_all')
+    experiment.window.show_image_sequence('instructions', 'start')
 
     # The answers that people can give
     yes_no_answer = ["Yes", "No"]
@@ -49,8 +55,10 @@ def run(experiment):
     noticed_relationship = MultipleChoice(experiment, prompt, yes_no_answer)
 
     # Create the number questions and alphabetic questions
-    number_questions = [MultipleChoice(experiment, "{0} {1} {0}".format(c, random_number()), quantity_answer) for c in "#@*"]
-    alpha_questions = [MultipleChoice(experiment, "{0} {1} {0}".format(c, random_letter()), quantity_answer) for c in "#@*"]
+    number_questions = [MultipleChoice(experiment, "{0} {1} {0}".format(c, random_number()), quantity_answer)
+                        for c in "#@*"]
+    alpha_questions = [MultipleChoice(experiment, "{0} {1} {0}".format(c, random_letter()), quantity_answer)
+                       for c in "#@*"]
 
     # Half the time number questions should come first,
     # the other half alphabetic questions
@@ -65,6 +73,9 @@ def run(experiment):
     # Ask the remaining questions
     for question in questions:
         question.ask()
+
+    # Show some slides after the experiment ends
+    experiment.window.show_image_sequence('instructions', 'end')
 
     # Save the gathered data
     experiment.save_data()
