@@ -2,14 +2,12 @@
 """
 # import some libraries
 from experiment import Experiment
-from visual import ask_user_info
-import task, post_task
+import task
+import post_task
 
 # ---------------- SETUP --------------------
-participant, age_group = ask_user_info("Smiley 2.0")
-
 # Make an Experiment object to store the experiment info
-experiment = Experiment(participant, age_group)
+experiment = Experiment()
 
 # ---------------- MAIN PROGRAM --------------------
 

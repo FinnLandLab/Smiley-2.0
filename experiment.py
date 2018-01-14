@@ -1,5 +1,9 @@
-import time, os, sys
+import os
+import sys
 import visual
+import config
+from pandas import DataFrame
+
 
 # ---------------- VERIFICATION --------------------
 # Ensure that relative paths start from the same directory as this script
@@ -49,28 +53,16 @@ class Experiment:
     """ A general experiment class containing all the information for the experiment.
     """
 
-    def __init__(self, participant, age_group):
-        """ Initializes a experiment class.
-
-            @param str participant: The id of the participant
-            @param str age_group: The age group the participant is a part of
-        """
-        self.participant = participant
-        # Get the numbers from the participant_id string
-        self.participant_num = int("".join([c for c in participant if c.isdigit()]))
-        self.condition = self.participant_num % 4  # can be 0, 1, 2, or 3
-
-        # True in half of the trials, in which letter will occur more often with the '@'
-        self.letters_corr_at = self.condition % 2 == 0
-
-        # True in half of the trials, when false pair them with 'k'
-        self.letter_pair_j = self.condition // 2 == 0
-
-        self.age_group = age_group
-        self.date = time.strftime('%c')
-        self._data = []
+    def __init__(self):
+        """ Initializes a experiment class. """
+        self.name = "Smiley"
         self.section = 'setup'
+        self._data = []
+        self._data_type = None
         self.window = visual.Window(self)
+
+        self.participant, self.age_group = visual.ask_user_info(self.name)
+        self.config = config.Configuration(self.participant, self.age_group)
 
     def push_data(self, data_point):
         """ Adds a data point to be saved later.
@@ -78,12 +70,27 @@ class Experiment:
             @param lst data_point: The data point to be saved
             @rtype None
         """
-        self._data.append(data_point)
+        if self._data_type is None and data_point is not None:
+            self._data_type = type(data_point)
+        elif type(data_point) != self._data_type or data_point is None:
+            raise ValueError("data_point ", data_point, "has the wrong type")
+
+        to_save = dict(vars(data_point))
+        while '_DataPoint__parent' in to_save:
+            parent = to_save.pop('_DataPoint__parent')
+            to_save.update(vars(parent))
+
+        for key in to_save:
+            if type(to_save[key]) is bool:
+                to_save[key] = int(to_save[key])
+
+        self._data.append(to_save)
 
     def new_section(self, section_name):
         """ Start a new section of the experiment"""
         self.section = section_name
         self._data = []
+        self._data_type = None
 
     def save_data(self):
         """ Saves the data data that was pushed since the last time new section was called to:
@@ -91,34 +98,16 @@ class Experiment:
 
         """
 
-        location = "{0}/{1}/{2}/{3}/".format(OUTPUT_LOCATION, self.section, self.age_group, self.participant)
-
+        dir_loc = "{0}/{1}/{2}/".format(self.config.output_location,
+                                        self.age_group, self.participant)
         # Make sure the file directory exists
-        if not os.path.exists(location):
-            os.makedirs(location)
+        if not os.path.exists(dir_loc):
+            os.makedirs(dir_loc)
 
         # Get the output file
-        output_file = open(location + self.section + ".csv", 'w')
-
-        # Write the header for the csv file
-        if self.section == 'task':
-            output_file.write(DATA_HEADER_TASK)
-        elif self.section == 'post-task':
-            output_file.write(DATA_HEADER_POST)
-        else:
-            raise Exception("Section name is '{}'".format(self.section))
-
-        # End the line
-        output_file.write("\n")
-
-        # Output the answers, and close the file
-        for row in self._data:
-            row = ",".join(str(entry) for entry in row)
-            output_file.write(row)
-            output_file.write("\n")
-        output_file.close()
-
-        self._data = []
+        file_loc = dir_loc + self.section + ".csv"
+        df = DataFrame(self._data)
+        df.to_csv(file_loc, index=False)
 
     def close(self):
         """ Ends the experiment. Does not save any data"""
