@@ -38,28 +38,25 @@ class Trial:
             # Get the correct keys for this trial:
             # Suppose we have that letter_pair_j is true. Then
             if self.type == 'alphabetic':
-                self.right_key = 'j'
-                self.wrong_key = 'k'
+                self.right_key = block.config.letter_key
+                self.wrong_key = block.config.number_key
             else:
-                self.right_key = 'k'
-                self.wrong_key = 'j'
+                self.right_key = block.config.number_key
+                self.wrong_key = block.config.letter_key
 
-            # If that is not the case, swap them
-            if not block.config.letter_pair_j:
-                self.right_key, self.wrong_key = self.wrong_key, self.right_key
-
-            # Use the same trick here
+            # Get whether this trial's flanker is helpful or not
             if flanker == '#':
                 self.helpful = 0
-            elif (self.type == 'alphabetic' and self.flanker == '@') or (
-                    self.type == 'numeric' and self.flanker == '*'):
-                self.helpful = 1
-            else:
-                self.helpful = -1
-
-            # If letters_corr_at is false, then we have the opposite helpfulness
-            if not block.config.letters_corr_at:
-                self.helpful = -self.helpful
+            elif flanker == '@':
+                if self.type == 'alphabetic':
+                    self.helpful = 1 if block.config.letters_corr_at else -1
+                else:
+                    self.helpful = -1 if block.config.letters_corr_at else 1
+            elif self.flanker == '*':
+                if self.type == 'alphabetic':
+                    self.helpful = -1 if block.config.letters_corr_at else 1
+                else:
+                    self.helpful = 1 if block.config.letters_corr_at else -1
 
     def __init__(self, character, flanker, block):
         """ Initializes the Trial class
@@ -75,15 +72,23 @@ class Trial:
 
         self.to_save = self.DataPoint(character, flanker, block)
 
+    def feedback(self):
+        """ Give the user feedback on whether they got the answer right or wrong"""
+        # Show feed-back
+        if self.to_save.correct:
+            self.window.show_text("Right", font_size=40)
+        else:
+            self.window.show_text("Wrong", font_size=40)
+        # Wait a little bit
+        core.wait(self.config.task_feed_back_display_time)
+
     def run(self):
         """ Run this trial"""
         timer = core.Clock()
 
         text = '{1} {0} {1}'.format(self.to_save.char, self.to_save.flanker)
 
-        letter_key = 'j' if self.config.letter_pair_j else 'k'
-        number_key = 'k' if self.config.letter_pair_j else 'j'
-        legend = '{0} for  letters, {1} for numbers'.format(letter_key, number_key)
+        legend = '{0} for  letters, {1} for numbers'.format(self.config.letter_key, self.config.number_key)
 
         # Experiment with size here!
         self.window.show_text(text=text, font_size=24,
@@ -97,6 +102,9 @@ class Trial:
         self.to_save.user_input = self.window.wait_for_prompt(keys=[self.to_save.right_key, self.to_save.wrong_key])
         self.to_save.response_time = timer.getTime()
         self.to_save.correct = (self.to_save.user_input == self.to_save.right_key)
+
+        # Give the user some feedback
+        self.feedback()
 
 
 class Block:

@@ -10,8 +10,9 @@ class Configuration:
 
         self.task_no_keyboard_response_time = 0.150
         self.task_interstimulus_interval = 0
+        self.task_feed_back_display_time = 0.150
 
-        # Dynamically generated
+        # ===================== Below variables are generated! ==========================
         # Save the age group and participant
         self.participant = participant
         self.age_group = age_group
@@ -27,3 +28,7 @@ class Configuration:
 
         # True in half of the trials, when false pair them with 'k'
         self.letter_pair_j = self.condition // 2 == 0
+
+        # More useful version of above variable to use in code
+        self.letter_key = 'j' if self.letter_pair_j else 'k'
+        self.number_key = 'k' if self.letter_pair_j else 'j'
