@@ -74,10 +74,18 @@ class Window:
         image_paths.sort()
 
         for image_path in image_paths:
-            self._instruction_image.image = image_path
-            self._instruction_image.draw()
-            self._window.flip()
+            self.show_image(image_path)
             self.wait_for_prompt()
+
+    def show_image(self, path):
+        """ Show the image at the given path.
+
+        @param str path: the path of the image to be shown
+        @rtype: None
+        """
+        self._instruction_image.image = path
+        self._instruction_image.draw()
+        self._window.flip()
 
     def show_text(self, text, font_size=24, legend=None, legend_font_size=24):
         """ Shows the text text on the main screen. font size in pt. Optionally shows a legend beneath the text"""

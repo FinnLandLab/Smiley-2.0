@@ -76,9 +76,9 @@ class Trial:
         """ Give the user feedback on whether they got the answer right or wrong"""
         # Show feed-back
         if self.to_save.correct:
-            self.window.show_text("Right", font_size=40)
+            self.window.show_image("images\\task\\feedback\\correct.png")
         else:
-            self.window.show_text("Wrong", font_size=40)
+            self.window.show_image("images\\task\\feedback\\incorrect.png")
         # Wait a little bit
         core.wait(self.config.task_feed_back_display_time)
 
