@@ -120,6 +120,7 @@ class Block:
             """ Create a DataPoint for a block"""
             self.block_num = block_num
             self.trial_num = None
+            self.total_trial_num = None
             self.__parent = config
 
     def __init__(self, experiment, type_flanker_amounts, block_num, save):
@@ -171,6 +172,7 @@ class Block:
     def run(self):
         """ Run this block"""
         for self.to_save.trial_num in range(len(self.trials)):
+            self.to_save.total_trial_num = (self.to_save.block_num * 32) + self.to_save.trial_num
             trial = self.trials[self.to_save.trial_num]
             trial.run()
             if self.save:
