@@ -54,14 +54,13 @@ class Experiment:
 
         """
 
-        dir_loc = "{0}/{1}/{2}/{3}/".format(self.config.output_location, self.section,
-                                            self.age_group, self.participant)
+        dir_loc = "{0}/{1}/".format(self.config.output_location, self.section)
         # Make sure the file directory exists
         if not os.path.exists(dir_loc):
             os.makedirs(dir_loc)
 
         # Get the output file
-        file_loc = dir_loc + self.section + ".csv"
+        file_loc = dir_loc + self.participant + ".csv"
         df = DataFrame(self._data)
         df.to_csv(file_loc, index=False)
 
