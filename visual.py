@@ -274,12 +274,16 @@ class Window:
                     # space means we add a blank
                     input_text += ' '
                 elif key == 'backspace':
-                    # backspace means we delete a char=
+                    # backspace means we delete a char
                     if len(input_text) > 0:
                         input_text = input_text[:-1]
-                elif len(key) == 1 and key.isalpha():
-                    # Char is not special case and can be inputted
-                    input_text += key
+                elif key == 'return':
+                    # return means we add a newline
+                    input_text += '\n'
+                elif len(key) == 1:
+                    # Check if char can be inputted
+                    if key.isalnum() or key in '.,':
+                        input_text += key
 
             # Draw what the user wrote and the instructions to the screen
             input_box.text = input_text
