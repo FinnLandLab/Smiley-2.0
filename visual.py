@@ -223,51 +223,71 @@ class Window:
         """ Closes this window"""
         self._window.close()
 
-    def get_input_text(self, prompt=None, font_size=24):
+    def get_input_text(self, prompt=None, prompt_font_size=24, input_font_size=20):
         """ Gets user input as text. The prompt
 
         @return: The text the user inputted until they pressed the key '0'
         @rtype: str
         """
-        font_size_cm = pt_to_cm(font_size)
+        # Calculate font sizes in cm
+        prompt_font_size = pt_to_cm(prompt_font_size)
+        input_font_size = pt_to_cm(input_font_size)
 
         # Clear the keys buffer
         event.getKeys()
 
-        # Set up a text box for instructions
+        # Set up the prompt's textbox's text
         prompt = "" if prompt is None or prompt == "" else prompt + ". "
         text = prompt + "Please type in your answer, press the key '0' to submit it:"
-        text_instr = visual.TextStim(win=self._window, text=text, color=-1, alignHoriz='left', alignVert='top',
-                                     units='cm', pos=self.norm_to_cm((-1, 1)), height=font_size_cm)
+
+        # Make the prompt textbox
+        text_instr = visual.TextStim(win=self._window, text=text, color=-1, wrapWidth=self.scalar_norm_to_cm(1.8),
+                                     alignHoriz='left', alignVert='top', units='cm',
+                                     pos=self.norm_to_cm((-.9, .9)), height=prompt_font_size)
 
         # Set up a textbox for user input
         input_text = ""
-        input_box = visual.TextStim(win=self._window, text=input_text, color=-1, units='cm', height=font_size_cm)
+
+        input_box = visual.TextStim(win=self._window, text=input_text, color=-1, units='cm', height=input_font_size,
+                                    wrapWidth=self.scalar_norm_to_cm(1.8), alignHoriz='left', alignVert='top',
+                                    pos=self.norm_to_cm((-.9, 0)))
+        input_box.draw()
 
         # Get user input
         inputting = True
 
         while inputting:
+            # Get the keys that were pressed
             keys = event.getKeys()
+
+            # Handle each key. Some key presses have special meaning
             for key in keys:
                 if key == '0':
+                    # 0 means we submit the captured text
                     inputting = False
                     break
                 elif key == 'escape':
+                    # escape means we exit the experiment
                     self.experiment.save_data()
                     core.quit()
-
                 elif key == 'space':
+                    # space means we add a blank
                     input_text += ' '
-
                 elif key == 'backspace':
+                    # backspace means we delete a char=
                     if len(input_text) > 0:
                         input_text = input_text[:-1]
                 elif len(key) == 1 and key.isalpha():
+                    # Char is not special case and can be inputted
                     input_text += key
+
+            # Draw what the user wrote and the instructions to the screen
             input_box.text = input_text
             input_box.draw()
             text_instr.draw()
             self._window.flip()
+
+            # Only check evey 100 ms
+            core.wait(0.1, 0)
 
         return input_text

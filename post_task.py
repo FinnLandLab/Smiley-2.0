@@ -69,7 +69,7 @@ class OpenEndedQuestion:
 
     def ask(self):
         """ Ask this question and record the response"""
-        self.to_save.user_response = self.window.get_input_text(self.to_save.question, font_size=24)
+        self.to_save.user_response = self.window.get_input_text(self.to_save.question, prompt_font_size=24)
         self.experiment.push_data(self.to_save)
 
 
