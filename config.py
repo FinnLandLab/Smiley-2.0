@@ -27,8 +27,8 @@ class Configuration:
         self.letters_corr_at = self.condition % 2 == 0
 
         # True in half of the trials, when false pair them with 'k'
-        self.letter_pair_j = self.condition // 2 == 0
+        self.letter_pair_condition = self.condition // 2 == 0
 
         # More useful version of above variable to use in code
-        self.letter_key = 'j' if self.letter_pair_j else 'k'
-        self.number_key = 'k' if self.letter_pair_j else 'j'
+        self.letter_key = 'x' if self.letter_pair_condition else 'y'
+        self.number_key = 'y' if self.letter_pair_condition else 'x'

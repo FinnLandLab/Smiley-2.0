@@ -36,7 +36,6 @@ class Trial:
                 raise Exception("Character '{}' is not in the allowed set of characters".format(character))
 
             # Get the correct keys for this trial:
-            # Suppose we have that letter_pair_j is true. Then
             if self.type == 'alphabetic':
                 self.right_key = block.config.letter_key
                 self.wrong_key = block.config.number_key
@@ -192,10 +191,7 @@ def run(experiment):
     experiment.new_section('task')
 
     # Show some instructions
-    if experiment.config.letter_pair_j:
-        experiment.window.show_image_sequence('instructions', 'start_j_letter')
-    else:
-        experiment.window.show_image_sequence('instructions', 'start_j_number')
+    experiment.window.show_image_sequence('instructions', 'start_{}_letter'.format(experiment.config.letter_key))
 
     # Show a practice block
     if experiment.config.practice_run:
