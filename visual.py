@@ -280,10 +280,13 @@ class Window:
                 elif key == 'return':
                     # return means we add a newline
                     input_text += '\n'
-                elif len(key) == 1:
-                    # Check if char can be inputted
-                    if key.isalnum() or key in '.,':
-                        input_text += key
+                elif key == 'comma':
+                    input_text += ','
+                elif key == 'period':
+                    input_text += '.'
+                elif len(key) == 1 and key.isalnum():
+                    # Regular character to be inputted
+                    input_text += key
 
             # Draw what the user wrote and the instructions to the screen
             input_box.text = input_text
