@@ -1,9 +1,10 @@
 """ A package that focuses on the user interaction"""
 
-from psychopy import visual, event, gui, core
-import psychopy.tools.monitorunittools
 import sys
 from glob import glob
+
+import psychopy.tools.monitorunittools
+from psychopy import visual, event, gui, core
 
 
 def ask_user_info(title):
@@ -45,18 +46,26 @@ class Window:
 
         self._instruction_image = visual.ImageStim(win=self._window, units='norm', size=(2, 2))
 
-    def norm_to_cm(self, norm):
-        x = psychopy.tools.monitorunittools.pix2cm(norm[0] * self._window.size[0] / 2.0, self._window.monitor)
-        y = psychopy.tools.monitorunittools.pix2cm(norm[1] * self._window.size[1] / 2.0,  self._window.monitor)
+    def norm_to_cm(self, point):
+        x = psychopy.tools.monitorunittools.pix2cm(point[0] * self._window.size[0] / 2.0, self._window.monitor)
+        y = psychopy.tools.monitorunittools.pix2cm(point[1] * self._window.size[1] / 2.0, self._window.monitor)
         return x, y
 
-    def norm_magn_to_cm_magn(self, norm_magn):
-        return self.norm_to_cm((norm_magn, 0))[0]
-
-    def px_to_norm(self, px):
-        x = 2.0 * px[0] / self._window.size[0]
-        y = 2.0 * px[1] / self._window.size[1]
+    def px_to_cm(self, point):
+        x = psychopy.tools.monitorunittools.pix2cm(point[0], self._window.monitor)
+        y = psychopy.tools.monitorunittools.pix2cm(point[1], self._window.monitor)
         return x, y
+
+    def px_to_norm(self, point):
+        x = 2.0 * point[0] / self._window.size[0]
+        y = 2.0 * point[1] / self._window.size[1]
+        return x, y
+
+    def scalar_norm_to_cm(self, scalar):
+        return self.norm_to_cm((scalar, 0))[0]
+
+    def scalar_px_to_cm(self, scalar):
+        return self.px_to_cm((scalar, 0))[0]
 
     def show_image_sequence(self, genre, subgenre='', task=None, extension='.png'):
         """ Shows all the images which follow the pattern
@@ -103,45 +112,67 @@ class Window:
             text_element.draw()
         self._window.flip()
 
-    def wait_for_choice(self, prompt, choices, font_size=24):
+    def wait_for_choice(self, prompt, choices, prompt_font_size=24, instruction_font_size=20, choice_font_size=20):
         """ Displays the given choices in lst choices with the given str prompt,
             and waits until one is picked. """
-        font_size_cm = pt_to_cm(font_size)
+        # Calculate font sizes in cm
+        prompt_font_size = pt_to_cm(prompt_font_size)
+        instruction_font_size = pt_to_cm(instruction_font_size)
+        choice_font_size = pt_to_cm(choice_font_size)
 
-        # Display choices
-        button_width = 2 / (len(choices) + 1.0)
+        # Calculate maximum size of each button
+        button_max_width = self.scalar_norm_to_cm(2 / (len(choices) + 1.0))
         buttons = []
 
+        # Keep track of the maximum text height
+        max_button_height = 0
+
         for i in range(len(choices)):
+            # Figure out where to place the button using norm units
             x_loc = 2 * ((i + 1.0) / (len(choices) + 1)) - 1
+            y_loc = -0.5
 
-            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_width/1.1,
+            # Convert to cm
+            x_loc, y_loc = self.norm_to_cm((x_loc, y_loc))
+
+            # Create and draw the text to display on the button
+            text = visual.TextStim(self._window, text=choices[i], wrapWidth=button_max_width - 1,
                                    color=-1, font='Times New Roman', units='cm',
-                                   pos=self.norm_to_cm((x_loc, -0.5)), height=font_size_cm)
-
-            # Find the desired box height and width
-            text_width, text_height = self.px_to_norm(text.boundingBox)
-
-            # Make a box
-            rect = visual.Rect(self._window, min(1.5 * text_width, button_width),
-                               1.5 * text_height, lineColor=-1, pos=(x_loc, -0.5))
-
-            # Add the rect to the set of buttons
-            buttons += [rect]
-
-            # Draw the button
-            rect.draw()
+                                   pos=(x_loc, y_loc), height=choice_font_size)
             text.draw()
 
-        # Display the prompt
-        text = visual.TextStim(self._window, text=prompt, wrapWidth=self.norm_magn_to_cm_magn(2), color=-1,
-                               font='Times New Roman', units='cm', height=font_size_cm)
+            # Find the dimensions of the text's bounding box in cm
+            text_width, text_height = self.px_to_cm(text.boundingBox)
+
+            # Calculate the size of the button we'll draw
+            button_width = min(1 + text_width, button_max_width)
+            button_height = 1 + text_height
+
+            # Keep track of the maximum button height
+            max_button_height = max(button_height, max_button_height)
+
+            # Create and draw the box that will represent this button
+            rect = visual.Rect(self._window, button_width, button_height, lineColor=-1,
+                               pos=(x_loc, y_loc), units='cm')
+            rect.draw()
+
+            # Add the rectangle to the set of rectangles to check for input
+            buttons += [rect]
+
+        # Create and display the prompt
+        text = visual.TextStim(self._window, text=prompt, wrapWidth=self.scalar_norm_to_cm(2), color=-1,
+                               font='Times New Roman', units='cm', height=prompt_font_size)
         text.draw()
 
+        # Get the height of the prompt text
+        x_loc = self.scalar_norm_to_cm(-0.9)
+        y_loc = (instruction_font_size + prompt_font_size) / 2
+
         # Tell the user to use their mouse
-        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=self.norm_magn_to_cm_magn(2),
+        text = visual.TextStim(self._window, text="Use your mouse to click:", wrapWidth=self.scalar_norm_to_cm(2),
                                color=-1, font='Times New Roman', alignHoriz='left',
-                               pos=self.norm_to_cm((-0.9, -text_height)), units='cm', height=font_size_cm)
+                               pos=(x_loc, y_loc),
+                               units='cm', height=instruction_font_size)
         text.draw()
 
         self._window.flip()

@@ -35,7 +35,7 @@ class MultipleChoiceQuestion:
     def ask(self):
         """ Ask this question and record the response"""
         self.to_save.user_response = self.experiment.window.wait_for_choice(self.to_save.question,
-                                                                            self.to_save.options, font_size=24)
+                                                                            self.to_save.options, prompt_font_size=24)
         self.experiment.push_data(self.to_save)
 
 
