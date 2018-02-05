@@ -171,7 +171,7 @@ class Block:
     def run(self):
         """ Run this block"""
         for self.to_save.trial_num in range(len(self.trials)):
-            self.to_save.total_trial_num = (self.to_save.block_num * 32) + self.to_save.trial_num
+            self.to_save.total_trial_num = (self.to_save.block_num * len(self.trials)) + self.to_save.trial_num
             trial = self.trials[self.to_save.trial_num]
             trial.run()
             if self.save:
