@@ -19,7 +19,7 @@ class MultipleChoiceQuestion:
             self.__parent = config
             self.user_response = None
 
-    def __init__(self, experiment, question, options):
+    def __init__(self, experiment, question, options, prompt_font_size=40):
         """ Initializes this Question
 
         @param experiment.Experiment experiment:
@@ -30,12 +30,15 @@ class MultipleChoiceQuestion:
         self.window = experiment.window
         self.config = experiment.config
 
+        self.prompt_font_size = prompt_font_size
+
         self.to_save = self.DataPoint(question, options, self.config)
 
     def ask(self):
         """ Ask this question and record the response"""
         self.to_save.user_response = self.experiment.window.wait_for_choice(self.to_save.question,
-                                                                            self.to_save.options, prompt_font_size=24)
+                                                                            self.to_save.options,
+                                                                            prompt_font_size=self.prompt_font_size)
         self.experiment.push_data(self.to_save)
 
 
@@ -96,7 +99,7 @@ def run(experiment):
     quantity_answer = ["Very little", "A bit", "A lot"]
 
     prompt = "Did you notice any relationship between the symbols and the letters?"
-    noticed_relationship = MultipleChoiceQuestion(experiment, prompt, yes_no_answer)
+    noticed_relationship = MultipleChoiceQuestion(experiment, prompt, yes_no_answer, prompt_font_size=24)
 
     prompt = "Do you have any thoughts on the experiment?"
     open_ended = OpenEndedQuestion(experiment, prompt)
