@@ -30,5 +30,5 @@ class Configuration:
         self.letter_pair_condition = self.condition // 2 == 0
 
         # More useful version of above variable to use in code
-        self.letter_key = 'x' if self.letter_pair_condition else 'y'
-        self.number_key = 'y' if self.letter_pair_condition else 'x'
+        self.letter_key = 'j' if self.letter_pair_condition else 'f'
+        self.number_key = 'f' if self.letter_pair_condition else 'j'
