@@ -11,6 +11,9 @@ class Configuration:
         self.task_no_keyboard_response_time = 0.150
         self.task_interstimulus_interval = 0
         self.task_feed_back_display_time = 0.150
+		
+		self.task_key1 = 'j';
+		self.task_key2 = 'f';
 
         # ===================== Below variables are generated! ==========================
         # Save the age group and participant
@@ -26,9 +29,9 @@ class Configuration:
         # True in half of the trials, in which letter will occur more often with the '@'
         self.letters_corr_at = self.condition % 2 == 0
 
-        # True in half of the trials, when false pair them with 'k'
+        # True in half of the trials
         self.letter_pair_condition = self.condition // 2 == 0
 
         # More useful version of above variable to use in code
-        self.letter_key = 'j' if self.letter_pair_condition else 'f'
-        self.number_key = 'f' if self.letter_pair_condition else 'j'
+        self.letter_key = task_key1 if self.letter_pair_condition else task_key2
+        self.number_key = task_key2 if self.letter_pair_condition else task_key1
