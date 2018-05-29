@@ -8,20 +8,20 @@ Run the "project.py" file. You can open it with psychopy.
 
 This file has all the configurations for the project. Feel free to mess around with different configurations. These will all be saved along with the data output by the experiment. The variables that can be changed are the following, with a description of what they do:
 
-- self.output_location = "data"
+- output_location 
 	- Output directory for data collected during experiment
-- self.practice_run = True
+- practice_run 
 	- Complete a practice run before the main task.
-- self.task_no_keyboard_response_time = 0.150
+- task_no_keyboard_response_time 
 	- Ignore any user input in the first this many seconds. Response time is calculated including this grace period (from when the stimulus is shown)
-- self.task_interstimulus_interval = 0
+- task_interstimulus_interval 
 	- How much time to hold on a blank screen between trials in the main task in seconds.
-- self.task_feed_back_display_time = 0.150
+- task_feed_back_display_time 
  	- How long feedback is shown for during the main task. The same for positive and negative feedback
- - self.task_key1
- 	- One of the keys to be used to identify letters/numbers. Counterbalanced with self.task_key2. (Half the time pressing task_key1 means identifying a letter, the other half it means identifying a number)
- - self.task_key2
- 	- One of the keys to be used to identify letters/numbers. Counterbalanced with self.task_key2. (Half the time pressing task_key2 means identifying a letter, the other half it means identifying a number)
+ - task_key1
+ 	- One of the keys to be used to identify letters/numbers. Counterbalanced with task_key2. (Half the time pressing task_key1 means identifying a letter, the other half it means identifying a number)
+ - task_key2
+ 	- One of the keys to be used to identify letters/numbers. Counterbalanced with task_key2. (Half the time pressing task_key2 means identifying a letter, the other half it means identifying a number)
 
 
 ## experiment.py
@@ -56,9 +56,50 @@ If letters_corr_at is true: In 4 blocks, the "@" flanker is shown along with let
 
 If letter_corr_at is false, the roles of "@" and "\*" are reversed.
 
+### Data
+Along with all the config variables, the following things are also saved for the main task:
+
+#### Trial data
+- char 
+	- The character being shown in the center of the stimuli. The number or letter participants have to identify.
+- flanker 
+	- The character shown around the letter or number participants have to identify
+- user_input 
+	- What key the user pressed
+- response_time
+	- How long it took for the user to press that key (including the period where no key precesses are recorded)
+- correct 
+	- If the participant was correct or not
+- type
+	- Type of the focal character: either numeric or alphabetic.
+- right_key
+	- The key that should be precessed
+- wrong_key
+	- The key that should not be precessed
+- helpful
+	- 1 if the flanker that goes around the focal character usually appears with characters of this type, 0 if the flanker appears just as much with characters of either type, and -1 if the flanker usually appears with characters of a different type.
+- trial_num
+	- The position of the trial within its block
+- total_trial_num 
+	- The position of the trial within all trials
+#### Block data
+- block_num 
+	- The position of this block within all blocks
+
 ## post_task.py
 
 Will ask the participant to reflect on the experiment and answer a few questions. Follows the same scheme as task.py in regards to datapoints.
+
+
+### Data
+Along with all the config variables, the following things are also saved for the post task:
+
+- question 
+	- What question was posed to the user
+- options
+	- What options the participant had for this question (if multiple choice)
+- user_response
+	- What the participant answered for this question
 
 ## visual.py
 
